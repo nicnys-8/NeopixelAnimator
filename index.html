@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="user-scalable=no" />
+    <!--meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" /-->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="HandheldFriendly" content="true" />
+    <!-- Chrome for Android web app tags -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="stylesheet" type="text/css" href="css/animator.css"/>
+</head>
+
+<body>
+    <title>Color Animations</title>
+
+
+    <div class="circle-container">
+        <canvas id="palette-canvas" width=800 height=800 ></canvas>
+        <canvas id="anim-canvas" width=800 height=800></canvas>
+    </div>
+    <div class="container">
+
+        <div id="top">
+            <img id="low-brightness" src="img/low-brightness.svg"/>
+            <input id="animator-brightness" type="range" min="0" max="255" value="255">
+            <img id="high-brightness" src="img/high-brightness.svg"/>
+        </div>
+
+
+        <div id="middle">
+
+            <div id="duration-div">
+                Duration:
+                <input id="duration-input" type="number" value="1.0" step="0.1"></input>
+            </div>
+
+            <div id="gradient-div">
+                Gradient:<input type="checkbox" id="gradient"></input>
+            </div>
+
+            <div id="copy-div">
+                Copy color:<input type="checkbox" id="copy"></input>
+            </div>
+
+            <div id="rotation-div">
+                Rotation:
+                <input id="rotation-input" type="number" value="0.0" step="0.1"></input>
+            </div>
+
+        </div>
+
+
+            <div id="bottom">
+                <img id="minus" src="img/minus.svg"></img>
+                <input id="frame-slider" type="range" min="0" max="0">
+                <img id="plus" src="img/plus.svg"></img>
+                <div id="current-frame">Current frame: 0</div>
+            </div>
+
+
+        <button id="animation-btn" class="wide-button">
+            Current color
+        </button>
+        
+        <div class="toolbar">
+            <img id="toolbar-play" class="toolbar-btn" src="img/toolbar-buttons/play.svg"></img>
+            <img id="toolbar-pause" class="toolbar-btn" src="img/toolbar-buttons/pause.svg"></img>
+            <img id="toolbar-export" class="toolbar-btn" src="img/toolbar-buttons/export.png"></img>
+        </div>
+    </div>
+
+    <script src="http://code.jquery.com/jquery.min.js"></script>
+
+    <script src="js/color-tool.js"></script>
+    <script src="js/color-animation.js"></script>
+    <script src="js/color-renderer.js"></script>
+    <script src="js/color-convert.js"></script>
+    <script src="js/palette-renderer.js"></script>
+    <script src="js/animation-exporter.js"></script>
+    <script src="js/animation-parser.js"></script>
+    <script src="js/stored-animations.js"></script>
+
+    <script>
+
+    window.onresize = resizeCanvas;
+
+    var current = 0;
+    var color = "#f8951d";
+    var lastColor = color;
+    var lastClicked = 0;
+
+    var circleContainer = document.querySelector(".circle-container");
+    var animCanvas = document.getElementById("anim-canvas");
+    var paletteCanvas = document.getElementById("palette-canvas");
+    var mouseDown = false;
+    var animation = new Animation(AnimationParser.parse(StoredAnimations.test1));
+    var animRenderer = new ColorRenderer(animCanvas, animation, 0.95, 0.7);
+    var paletteRenderer = new PaletteRenderer(paletteCanvas, 0.5);
+    var timeoutId;
+
+    var rotationInput = document.getElementById("rotation-input");
+    var frameSlider = document.getElementById("frame-slider");
+    var brightnessSlider = document.getElementById("animator-brightness");
+    var durationInput = document.getElementById("duration-input");
+    var gradientCheckbox = document.getElementById("gradient");
+    var copyCheckbox = document.getElementById("copy");
+
+    var currentFrame = document.getElementById("current-frame");
+
+    var playBtn = document.getElementById("toolbar-play");
+    var pauseBtn = document.getElementById("toolbar-pause");
+    var exportBtn = document.getElementById("toolbar-export");
+
+    var isPlaying = false;
+
+    animRenderer.shouldDrawContours(true);
+
+
+/*==============================
+== Mouse presses and touches ==
+=============================*/
+
+$("body").bind("touchmove", function(e){e.preventDefault()});
+
+document.body.onmousedown = function() {
+    mouseDown = true;
+}
+document.body.onmouseup = function() {
+    mouseDown = false;
+}
+
+function touchX(e) {
+    return (e.touches[0].clientX - animCanvas.offsetLeft);
+}
+function touchY(e) {
+    return (e.touches[0].clientY - animCanvas.offsetTop);
+}
+
+function touchDown(e) {
+    var index = animRenderer.getIndex(touchX(e), touchY(e));
+    if (index >= 0) {
+        handleClickOnSegment(index);
+    }
+};
+circleContainer.addEventListener("touchstart", touchDown, false);
+
+function touchMove(e) {
+    var index = animRenderer.getIndex(touchX(e), touchY(e));
+    if (index >= 0) {
+        handleClickOnSegment(index);
+    }
+};
+circleContainer.addEventListener("touchmove", touchMove, false);
+
+/**
+ Handles mouse presses on the canvas
+ */
+ circleContainer.onmousedown = function(event) {
+    var index = animRenderer.getIndex(event.offsetX, event.offsetY);
+    var temp;
+
+    temp = paletteRenderer.getColor(event.offsetX, event.offsetY);
+
+    if (temp !== null) {
+        setColor(temp);
+    }
+
+    if (index >= 0) {
+        handleClickOnSegment(index);
+    }
+    
+    paletteRenderer.show();
+}
+
+/**
+ Handles mouse moves on the canvas
+ */
+ animCanvas.onmousemove = function(event) {
+    if (!mouseDown) {
+        return;
+    }
+    var index = animRenderer.getIndex(event.offsetX, event.offsetY);
+    if (index >= 0) {
+        handleClickOnSegment(index);
+    }
+}
+
+
+/*========================
+ == Buttons and sliders ==
+ =======================*/
+
+/**
+Changes the brightness of the palette
+*/
+brightnessSlider.onchange = function() {
+    paletteRenderer.setIntensity(brightnessSlider.value / 255);
+};
+
+durationInput.onchange = function() {
+    animation.duration = durationInput.value;
+};
+
+rotationInput.onchange = function() {
+    animation.rotationSpeed = rotationInput.value;
+}
+
+/**
+ Adds a duplicate of the current frame to the animation
+ */
+ plus.onclick = function() {
+    console.log("Whaat?");
+    animation.duplicateFrame(current);
+    current++;
+    updateUI();
+};
+
+/**
+ Deletes the current frame from the animation
+ */
+ minus.onclick = function() {
+    if (animation.frames.length > 1) {
+        animation.deleteFrame(current);
+    }
+    
+    if (current > 0) {
+        current--;
+    }
+    animRenderer.show(current);
+    updateUI();
+};
+
+/**
+Changes which frame is currently shown
+*/
+frameSlider.onchange = function() {
+    current = frameSlider.value;
+    updateUI();
+    animRenderer.show(current);
+}
+
+playBtn.onclick = function() {
+    if (!isPlaying) animate();
+};
+
+pauseBtn.onclick = function() {
+    isPlaying = false;
+    clearTimeout(timeoutId);
+    animRenderer.show(current);
+};
+
+exportBtn.onclick = function() {
+    var exported =Exporter.exportJSON(animation);
+
+    console.log("Animation as JSON:");
+    console.log(exported);
+
+    console.log("Animation as a string:");
+    console.log(JSON.stringify(exported));
+
+    alert("The animation was exported to the console.");
+};
+
+function switchToAnimation(name) {
+    animation = new Animation(AnimationParser.parse(StoredAnimations[name]));
+    animRenderer.setAnimation(animation);
+}
+
+/**
+ Colors the clicked circle segment
+ */
+ function handleClickOnSegment(index) {
+
+    if (copyCheckbox.checked) {
+        setColor(animation.frames[current].segments[index]);
+        copy.checked = false;
+        return;
+    }
+
+    if (!isPlaying) {
+
+        if (gradientCheckbox.checked) {
+            animation.drawGradient(current, lastClicked, index, color, lastColor);
+        } else {
+            animation.setSegmentColor(current, index, color);
+        }
+
+        lastClicked = index;
+        lastColor = color;
+
+        animRenderer.highLightSegment(index);
+        animRenderer.show(current);
+    }
+}
+
+function resizeCanvas() {
+    if (window.innerHeight > window.innerWidth) {
+        $(document.body).removeClass('landscape');
+    } else {
+        $(document.body).addClass('landscape');
+    }
+    var circlePortion = 0.6; // Cursed number, bah... 
+    var side = Math.min($(".circle-container").width(), $(".circle-container").height());
+    animCanvas.style.width = side + "px";
+    animCanvas.width = side;
+    animCanvas.height = side;
+    animCanvas.style.left = "50%";
+    animCanvas.style.marginLeft = -side / 2 + "px";
+    animRenderer.show(current);
+
+    paletteCanvas.style.width = side + "px";
+    paletteCanvas.width = side;
+    paletteCanvas.height = side;
+    paletteCanvas.style.left = "50%";
+    paletteCanvas.style.marginLeft = -side / 2 + "px";
+    paletteRenderer.show();
+}
+
+/**
+ Draw a sequence of frames
+ */
+ function animate() {
+    var animationSteps = animation.frames.length;
+    var delay = 2000 * animation.duration / animationSteps;
+    var isLastFrame;
+    var rotation = 0;
+
+    isPlaying = true;
+    
+    current = -1;
+    drawNextFrame();
+    
+    function drawNextFrame() {
+        current = (current + 1) % animation.frames.length;
+        animRenderer.show(current, rotation);
+        rotation += animation.rotationSpeed * 2 * Math.PI / animation.numSegments;
+        timeoutId = setTimeout(drawNextFrame, delay);
+        updateUI();
+    }
+};
+
+/**
+Updates the various input fields to show correct values
+*/
+function updateUI() {
+    frameSlider.max = animation.frames.length - 1;
+    frameSlider.value = current;
+    durationInput.value = animation.duration;
+    rotationInput.value = animation.rotationSpeed;
+    currentFrame.innerHTML = "Current frame: " + current;
+}
+
+function setColor(colorArg) {
+    color = colorArg;
+    $("#animation-btn").css("background-color", color);
+}
+
+resizeCanvas();
+
+</script>
+</body>
+</html>
+
+
+
