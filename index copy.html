@@ -10,67 +10,18 @@
     <meta name="HandheldFriendly" content="true" />
     <!-- Chrome for Android web app tags -->
     <meta name="mobile-web-app-capable" content="yes" />
-    <link rel="stylesheet" type="text/css" href="/js/lib/bootstrap/css/bootstrap.min.css"/>
     <link rel="stylesheet" type="text/css" href="css/animator.css"/>
-    <link rel="stylesheet" type="text/css" href="css/style.css"/>
 </head>
 
 <body>
     <title>Color Animations</title>
 
 
-    <div class="content">
+    <div class="circle-container">
+        <canvas id="palette-canvas" width=800 height=800 ></canvas>
         <canvas id="anim-canvas" width=800 height=800></canvas>
     </div>
-
-    <div id="sidebar-left">
-
-        <div id="menuCategoryPrototype" class="panel panel-default">
-            <div class="panel-heading">
-                <h4 class="panel-title">
-                    <!--a data-toggle="collapse" data-parent="#menuCategories" href="#mChroma" class="mcToggler"-->
-                    Stuff
-                    <!--/a-->
-                </h4>
-            </div>
-            <div class="panel-collapse collapse in mcToggled" id="mChroma">
-                <div class="panel-body">
-                    <table class="calibration" id="calibration" style="margin:0px auto;">
-                        <tr>
-                            <th><label for="input-chroma-screen">screen</label></th>
-                            <td><input type="color" id="input-chroma-screen"></td>
-                        </tr>
-                        <tr>
-                            <th><label for="input-chroma-weight">weight</label></th>
-                            <td><input type="number" min="0" step="0.01" id="input-chroma-weight"></td>
-                        </tr>
-                        <tr>
-                            <th><label for="input-chroma-balance">balance</label></th>
-                            <td><input type="range" min="0" max="1" step="0.01" id="input-chroma-balance"></td>
-                        </tr>
-                        <tr>
-                            <th><label for="input-chroma-clipBlack">clipBlack</label></th>
-                            <td><input type="range" min="0" max="1" step="0.01" id="input-chroma-clipBlack"></td>
-                        </tr>
-                        <tr>
-                            <th><label for="input-chroma-clipWhite">clipWhite</label></th>
-                            <td><input type="range" min="0" max="1" step="0.01" id="input-chroma-clipWhite"></td>
-                        </tr>
-                        <!--tr>
-                        <th><label for="input-chroma-mask">mask</label></th>
-                        <td><input type="checkbox" id="input-chroma-mask"></td></tr-->
-
-                    </table>
-                    <button class="btn btn-large btn-primary" id="calibrationButton">Save calibration!</button>
-                    <button class="btn btn-large btn-primary" id="fullscreenButton">Fullscreen</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-------------------->
-
-    <div class="container" style="display:none">
+    <div class="container">
 
         <div id="top">
             <img id="low-brightness" src="img/low-brightness.svg"/>
@@ -102,12 +53,12 @@
         </div>
 
 
-        <div id="bottom">
-            <img id="minus" src="img/minus.svg"></img>
-            <input id="frame-slider" type="range" min="0" max="0">
-            <img id="plus" src="img/plus.svg"></img>
-            <div id="current-frame">Current frame: 0</div>
-        </div>
+            <div id="bottom">
+                <img id="minus" src="img/minus.svg"></img>
+                <input id="frame-slider" type="range" min="0" max="0">
+                <img id="plus" src="img/plus.svg"></img>
+                <div id="current-frame">Current frame: 0</div>
+            </div>
 
 
         <button id="animation-btn" class="wide-button">
@@ -119,11 +70,9 @@
             <img id="toolbar-pause" class="toolbar-btn" src="img/toolbar-buttons/pause.svg"></img>
             <img id="toolbar-export" class="toolbar-btn" src="img/toolbar-buttons/export.png"></img>
         </div>
-
     </div>
 
     <script src="http://code.jquery.com/jquery.min.js"></script>
-    <script type="text/javascript" src="/js/lib/bootstrap/js/bootstrap.min.js"></script>
 
     <script src="js/color-tool.js"></script>
     <script src="js/color-animation.js"></script>
@@ -143,13 +92,13 @@
     var lastColor = color;
     var lastClicked = 0;
 
-    var circleContainer = document.querySelector(".content");
+    var circleContainer = document.querySelector(".circle-container");
     var animCanvas = document.getElementById("anim-canvas");
-    //var paletteCanvas = document.getElementById("palette-canvas");
+    var paletteCanvas = document.getElementById("palette-canvas");
     var mouseDown = false;
     var animation = new Animation(AnimationParser.parse(StoredAnimations.test1));
     var animRenderer = new ColorRenderer(animCanvas, animation, 0.95, 0.7);
-    //var paletteRenderer = new PaletteRenderer(paletteCanvas, 0.5);
+    var paletteRenderer = new PaletteRenderer(paletteCanvas, 0.5);
     var timeoutId;
 
     var rotationInput = document.getElementById("rotation-input");
@@ -211,7 +160,6 @@ circleContainer.addEventListener("touchmove", touchMove, false);
  */
  circleContainer.onmousedown = function(event) {
     var index = animRenderer.getIndex(event.offsetX, event.offsetY);
-    /*
     var temp;
 
     temp = paletteRenderer.getColor(event.offsetX, event.offsetY);
@@ -219,12 +167,12 @@ circleContainer.addEventListener("touchmove", touchMove, false);
     if (temp !== null) {
         setColor(temp);
     }
-    */
+
     if (index >= 0) {
         handleClickOnSegment(index);
     }
     
-    //paletteRenderer.show();
+    paletteRenderer.show();
 }
 
 /**
@@ -249,7 +197,7 @@ circleContainer.addEventListener("touchmove", touchMove, false);
 Changes the brightness of the palette
 */
 brightnessSlider.onchange = function() {
-    //paletteRenderer.setIntensity(brightnessSlider.value / 255);
+    paletteRenderer.setIntensity(brightnessSlider.value / 255);
 };
 
 durationInput.onchange = function() {
@@ -363,14 +311,12 @@ function resizeCanvas() {
     animCanvas.style.marginLeft = -side / 2 + "px";
     animRenderer.show(current);
 
-    /*
     paletteCanvas.style.width = side + "px";
     paletteCanvas.width = side;
     paletteCanvas.height = side;
     paletteCanvas.style.left = "50%";
     paletteCanvas.style.marginLeft = -side / 2 + "px";
     paletteRenderer.show();
-    */
 }
 
 /**
