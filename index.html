@@ -18,133 +18,106 @@
 <body>
     <title>Color Animations</title>
 
+    <div id="content">
+       <canvas id="anim-canvas" width=800 height=800></canvas>
+   </div>
 
-    <div class="content">
-        <canvas id="anim-canvas" width=800 height=800></canvas>
-    </div>
+   <div id="sidebar-left">
 
-    <div id="sidebar-left">
+    <div id="menuCategoryPrototype" class="panel panel-default">
 
-        <div id="menuCategoryPrototype" class="panel panel-default">
-            <div class="panel-heading">
-                <h4 class="panel-title">
-                    <!--a data-toggle="collapse" data-parent="#menuCategories" href="#mChroma" class="mcToggler"-->
-                    Stuff
-                    <!--/a-->
-                </h4>
-            </div>
-            <div class="panel-collapse collapse in mcToggled" id="mChroma">
-                <div class="panel-body">
-                    <table class="calibration" id="calibration" style="margin:0px auto;">
-                        <tr>
-                            <th><label for="input-chroma-screen">screen</label></th>
-                            <td><input type="color" id="input-chroma-screen"></td>
-                        </tr>
-                        <tr>
-                            <th><label for="input-chroma-weight">weight</label></th>
-                            <td><input type="number" min="0" step="0.01" id="input-chroma-weight"></td>
-                        </tr>
-                        <tr>
-                            <th><label for="input-chroma-balance">balance</label></th>
-                            <td><input type="range" min="0" max="1" step="0.01" id="input-chroma-balance"></td>
-                        </tr>
-                        <tr>
-                            <th><label for="input-chroma-clipBlack">clipBlack</label></th>
-                            <td><input type="range" min="0" max="1" step="0.01" id="input-chroma-clipBlack"></td>
-                        </tr>
-                        <tr>
-                            <th><label for="input-chroma-clipWhite">clipWhite</label></th>
-                            <td><input type="range" min="0" max="1" step="0.01" id="input-chroma-clipWhite"></td>
-                        </tr>
-                        <!--tr>
-                        <th><label for="input-chroma-mask">mask</label></th>
-                        <td><input type="checkbox" id="input-chroma-mask"></td></tr-->
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                <!--a data-toggle="collapse" data-parent="#menuCategories" href="#mChroma" class="mcToggler"-->
+                Stuff
+                <!--/a-->
+            </h4>
+        </div>
 
-                    </table>
-                    <button class="btn btn-large btn-primary" id="calibrationButton">Save calibration!</button>
-                    <button class="btn btn-large btn-primary" id="fullscreenButton">Fullscreen</button>
+        <div class="panel-collapse collapse in mcToggled" id="mChroma">
+            <div class="panel-body">
+                <table class="calibration" id="calibration" style="margin:0px auto;">
+                    <tr>
+                        <th><label for="input-color">Color</label></th>
+                        <td><input type="color" id="input-color"></td>
+                    </tr>
+
+                    <tr>
+                        <th><label>Rotation</label></th>
+                        <td><input type="number" value="0.0" step="0.1" id="rotation-input"></td>
+                    </tr>
+
+                    <tr>
+                        <th><label>Duration</label></th>
+                        <td><input type="number" value="1.0" step="0.1" id="duration-input"></td>
+                    </tr>
+
+                    <tr>
+                        <th><label>Frame</label></th>
+                        <td><input type="range" min="0" max="0" id="frame-slider"></td>
+                    </tr>
+
+                    <tr>
+                        <th><label>Gradient</label></th>
+                        <td><input type="checkbox" id="gradient"></input></td>
+                    </tr>
+
+                    <tr>
+                        <th><label>Copy</label></th>
+                        <td><input type="checkbox" id="copy"></input></td>
+                    </tr>
                 </div>
+
+
             </div>
-        </div>
+
+        </table>
+
+        <button class="btn btn-small btn-success" id="plus">Add frame</button>
+        <button class="btn btn-small btn-danger" id="minus">Remove frame</button>
+
+        <button class="btn btn-large btn-primary" id="toolbar-play">Play</button>
+        <button class="btn btn-large btn-primary" id="toolbar-pause">Pause</button>
+        <button class="btn btn-large btn-primary" id="toolbar-export">Export</button>
     </div>
-
-    <!-------------------->
-
-    <div class="container" style="display:none">
-
-        <div id="top">
-            <img id="low-brightness" src="img/low-brightness.svg"/>
-            <input id="animator-brightness" type="range" min="0" max="255" value="255">
-            <img id="high-brightness" src="img/high-brightness.svg"/>
-        </div>
+</div>
+</div>
+</div>
 
 
-        <div id="middle">
+<!--div class="container" style="display:none">
 
-            <div id="duration-div">
-                Duration:
-                <input id="duration-input" type="number" value="1.0" step="0.1"></input>
-            </div>
-
-            <div id="gradient-div">
-                Gradient:<input type="checkbox" id="gradient"></input>
-            </div>
-
-            <div id="copy-div">
-                Copy color:<input type="checkbox" id="copy"></input>
-            </div>
-
-            <div id="rotation-div">
-                Rotation:
-                <input id="rotation-input" type="number" value="0.0" step="0.1"></input>
-            </div>
-
-        </div>
-
-
-        <div id="bottom">
-            <img id="minus" src="img/minus.svg"></img>
-            <input id="frame-slider" type="range" min="0" max="0">
-            <img id="plus" src="img/plus.svg"></img>
-            <div id="current-frame">Current frame: 0</div>
-        </div>
-
-
-        <button id="animation-btn" class="wide-button">
-            Current color
-        </button>
+    <div id="top">
+        <img id="low-brightness" src="img/low-brightness.svg"/>
         
-        <div class="toolbar">
-            <img id="toolbar-play" class="toolbar-btn" src="img/toolbar-buttons/play.svg"></img>
-            <img id="toolbar-pause" class="toolbar-btn" src="img/toolbar-buttons/pause.svg"></img>
-            <img id="toolbar-export" class="toolbar-btn" src="img/toolbar-buttons/export.png"></img>
-        </div>
-
+        <img id="high-brightness" src="img/high-brightness.svg"/>
     </div>
 
-    <script src="http://code.jquery.com/jquery.min.js"></script>
-    <script type="text/javascript" src="/js/lib/bootstrap/js/bootstrap.min.js"></script>
+</div-->
 
-    <script src="js/color-tool.js"></script>
-    <script src="js/color-animation.js"></script>
-    <script src="js/color-renderer.js"></script>
-    <script src="js/color-convert.js"></script>
-    <script src="js/palette-renderer.js"></script>
-    <script src="js/animation-exporter.js"></script>
-    <script src="js/animation-parser.js"></script>
-    <script src="js/stored-animations.js"></script>
+<script src="http://code.jquery.com/jquery.min.js"></script>
+<script type="text/javascript" src="/js/lib/bootstrap/js/bootstrap.min.js"></script>
 
-    <script>
+<script src="js/color-tool.js"></script>
+<script src="js/color-animation.js"></script>
+<script src="js/color-renderer.js"></script>
+<script src="js/color-convert.js"></script>
+<script src="js/palette-renderer.js"></script>
+<script src="js/animation-exporter.js"></script>
+<script src="js/animation-parser.js"></script>
+<script src="js/stored-animations.js"></script>
 
-    window.onresize = resizeCanvas;
+<script>
 
-    var current = 0;
-    var color = "#f8951d";
-    var lastColor = color;
-    var lastClicked = 0;
+window.onresize = resizeCanvas;
 
-    var circleContainer = document.querySelector(".content");
-    var animCanvas = document.getElementById("anim-canvas");
+var current = 0;
+var color = "#f8951d";
+var lastColor = color;
+var lastClicked = 0;
+
+var circleContainer = document.getElementById("content");
+var animCanvas = document.getElementById("anim-canvas");
     //var paletteCanvas = document.getElementById("palette-canvas");
     var mouseDown = false;
     var animation = new Animation(AnimationParser.parse(StoredAnimations.test1));
@@ -154,12 +127,10 @@
 
     var rotationInput = document.getElementById("rotation-input");
     var frameSlider = document.getElementById("frame-slider");
-    var brightnessSlider = document.getElementById("animator-brightness");
+    //var brightnessSlider = document.getElementById("animator-brightness");
     var durationInput = document.getElementById("duration-input");
     var gradientCheckbox = document.getElementById("gradient");
     var copyCheckbox = document.getElementById("copy");
-
-    var currentFrame = document.getElementById("current-frame");
 
     var playBtn = document.getElementById("toolbar-play");
     var pauseBtn = document.getElementById("toolbar-pause");
@@ -247,10 +218,10 @@ circleContainer.addEventListener("touchmove", touchMove, false);
 
 /**
 Changes the brightness of the palette
-*/
+
 brightnessSlider.onchange = function() {
     //paletteRenderer.setIntensity(brightnessSlider.value / 255);
-};
+};*/
 
 durationInput.onchange = function() {
     animation.duration = durationInput.value;
@@ -355,22 +326,11 @@ function resizeCanvas() {
         $(document.body).addClass('landscape');
     }
     var circlePortion = 0.6; // Cursed number, bah... 
-    var side = Math.min($(".circle-container").width(), $(".circle-container").height());
+    var side = Math.min($("#content").width(), $("#content").height());
     animCanvas.style.width = side + "px";
     animCanvas.width = side;
     animCanvas.height = side;
-    animCanvas.style.left = "50%";
-    animCanvas.style.marginLeft = -side / 2 + "px";
     animRenderer.show(current);
-
-    /*
-    paletteCanvas.style.width = side + "px";
-    paletteCanvas.width = side;
-    paletteCanvas.height = side;
-    paletteCanvas.style.left = "50%";
-    paletteCanvas.style.marginLeft = -side / 2 + "px";
-    paletteRenderer.show();
-    */
 }
 
 /**

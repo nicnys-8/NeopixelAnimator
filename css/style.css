@@ -8,8 +8,17 @@ body {
 
 button {
     margin:5px;
-    width:100%;
 }
+
+.btn-large {
+	width:100%;
+}
+
+
+.btn-small {
+	width:50%;
+}
+
 
 #sidebar-left {
 	position:absolute;
