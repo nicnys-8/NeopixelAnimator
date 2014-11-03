@@ -96,6 +96,8 @@
 
 <script>
 
+var MIN_CANVAS_SIDE = 600;
+
 window.onresize = resizeCanvas;
 
 var current = 0;
@@ -309,15 +311,16 @@ function switchToAnimation(name) {
 }
 
 function resizeCanvas() {
-    /*
+    
     var circlePortion = 0.6; // Cursed number, bah... 
     var side = Math.min($("#content").width(), $("#content").height());
-    animCanvas.style.width = side + "px";
+    side = Math.min(MIN_CANVAS_SIDE, side);
+    animCanvas.style.minWidth = side + "px";
 
     //side = 600;
     animCanvas.width = side;
     animCanvas.height = side;
-    */
+
     animRenderer.show(current);
 }
 
