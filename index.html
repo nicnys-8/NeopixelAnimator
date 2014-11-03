@@ -77,7 +77,6 @@
         <button class="btn btn-small btn-danger" id="minus">Remove frame</button>
 
         <button class="btn btn-large btn-primary" id="toolbar-play">Play</button>
-        <button class="btn btn-large btn-primary" id="toolbar-pause">Pause</button>
         <button class="btn btn-large btn-primary" id="toolbar-export">Export</button>
     </div>
 </div>
@@ -125,7 +124,6 @@ var animCanvas = document.getElementById("anim-canvas");
     colorPicker.value = color;
 
     var playBtn = document.getElementById("toolbar-play");
-    var pauseBtn = document.getElementById("toolbar-pause");
     var exportBtn = document.getElementById("toolbar-export");
 
     var isPlaying = false;
@@ -231,17 +229,31 @@ frameSlider.onchange = function() {
     current = frameSlider.value;
     updateUI();
     animRenderer.show(current);
-}
+};
+
+durationInput.onchange = function() {
+    animation.duration = durationInput.value;
+};
+
+rotationInput.onchange = function() {
+    animation.rotationSpeed = rotationInput.value;
+};
 
 playBtn.onclick = function() {
     animRenderer.highLightSegment(-1);
-    if (!isPlaying) animate();
-};
 
-pauseBtn.onclick = function() {
-    isPlaying = false;
-    clearTimeout(timeoutId);
-    animRenderer.show(current);
+    if (isPlaying) {
+        isPlaying = false;
+        clearTimeout(timeoutId);
+        animRenderer.show(current);
+        playBtn.innerHTML = "Play";
+        
+    } else {
+        animate();
+        playBtn.innerHTML = "Pause";
+    }
+
+    //if (!isPlaying) animate();
 };
 
 colorPicker.onchange = function(e) {
@@ -275,6 +287,7 @@ function switchToAnimation(name) {
 
     if (copyCheckbox.checked) {
         color = animation.frames[current].segments[index];
+        colorPicker.value = color;
         copy.checked = false;
         return;
     }
