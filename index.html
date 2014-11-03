@@ -19,7 +19,7 @@
     <title>Color Animations</title>
 
     <div id="content">
-       <canvas id="anim-canvas" width=800 height=800></canvas>
+       <canvas id="anim-canvas" width=600 height=600></canvas>
    </div>
 
    <div id="sidebar-left">
@@ -43,27 +43,27 @@
                     </tr>
 
                     <tr>
-                        <th><label>Rotation</label></th>
-                        <td><input type="number" value="0.0" step="0.1" id="rotation-input"></td>
+                        <th><label for="rotation-input">Rotation</label></th>
+                        <td><input type="number" value="1" step="0.1" id="rotation-input"></td>
                     </tr>
 
                     <tr>
-                        <th><label>Duration</label></th>
-                        <td><input type="number" value="1.0" step="0.1" id="duration-input"></td>
+                        <th><label for="duration-input">Duration</label></th>
+                        <td><input type="number" value="0.5" step="0.1" id="duration-input"></td>
                     </tr>
 
                     <tr>
-                        <th><label>Frame</label></th>
+                        <th><label for="frame-slider" id="frame-label">Frame 0</label></th>
                         <td><input type="range" min="0" max="0" id="frame-slider"></td>
                     </tr>
 
                     <tr>
-                        <th><label>Gradient</label></th>
+                        <th><label for="gradient">Gradient</label></th>
                         <td><input type="checkbox" id="gradient"></input></td>
                     </tr>
 
                     <tr>
-                        <th><label>Copy</label></th>
+                        <th><label for="copy">Copy</label></th>
                         <td><input type="checkbox" id="copy"></input></td>
                     </tr>
                 </div>
@@ -84,20 +84,8 @@
 </div>
 </div>
 
-
-<!--div class="container" style="display:none">
-
-    <div id="top">
-        <img id="low-brightness" src="img/low-brightness.svg"/>
-        
-        <img id="high-brightness" src="img/high-brightness.svg"/>
-    </div>
-
-</div-->
-
 <script src="http://code.jquery.com/jquery.min.js"></script>
-<script type="text/javascript" src="/js/lib/bootstrap/js/bootstrap.min.js"></script>
-
+<script src="/js/lib/bootstrap/js/bootstrap.min.js"></script>
 <script src="js/color-tool.js"></script>
 <script src="js/color-animation.js"></script>
 <script src="js/color-renderer.js"></script>
@@ -112,7 +100,7 @@
 window.onresize = resizeCanvas;
 
 var current = 0;
-var color = "#f8951d";
+var color = "#ff0000";
 var lastColor = color;
 var lastClicked = 0;
 
@@ -127,10 +115,14 @@ var animCanvas = document.getElementById("anim-canvas");
 
     var rotationInput = document.getElementById("rotation-input");
     var frameSlider = document.getElementById("frame-slider");
+    var frameLabel = document.getElementById("frame-label");
     //var brightnessSlider = document.getElementById("animator-brightness");
     var durationInput = document.getElementById("duration-input");
     var gradientCheckbox = document.getElementById("gradient");
     var copyCheckbox = document.getElementById("copy");
+    var colorPicker = document.getElementById("input-color");
+
+    colorPicker.value = color;
 
     var playBtn = document.getElementById("toolbar-play");
     var pauseBtn = document.getElementById("toolbar-pause");
@@ -182,15 +174,7 @@ circleContainer.addEventListener("touchmove", touchMove, false);
  */
  circleContainer.onmousedown = function(event) {
     var index = animRenderer.getIndex(event.offsetX, event.offsetY);
-    /*
-    var temp;
 
-    temp = paletteRenderer.getColor(event.offsetX, event.offsetY);
-
-    if (temp !== null) {
-        setColor(temp);
-    }
-    */
     if (index >= 0) {
         handleClickOnSegment(index);
     }
@@ -217,25 +201,9 @@ circleContainer.addEventListener("touchmove", touchMove, false);
  =======================*/
 
 /**
-Changes the brightness of the palette
-
-brightnessSlider.onchange = function() {
-    //paletteRenderer.setIntensity(brightnessSlider.value / 255);
-};*/
-
-durationInput.onchange = function() {
-    animation.duration = durationInput.value;
-};
-
-rotationInput.onchange = function() {
-    animation.rotationSpeed = rotationInput.value;
-}
-
-/**
  Adds a duplicate of the current frame to the animation
  */
  plus.onclick = function() {
-    console.log("Whaat?");
     animation.duplicateFrame(current);
     current++;
     updateUI();
@@ -266,6 +234,7 @@ frameSlider.onchange = function() {
 }
 
 playBtn.onclick = function() {
+    animRenderer.highLightSegment(-1);
     if (!isPlaying) animate();
 };
 
@@ -273,6 +242,10 @@ pauseBtn.onclick = function() {
     isPlaying = false;
     clearTimeout(timeoutId);
     animRenderer.show(current);
+};
+
+colorPicker.onchange = function(e) {
+    color = colorPicker.value
 };
 
 exportBtn.onclick = function() {
@@ -287,6 +260,9 @@ exportBtn.onclick = function() {
     alert("The animation was exported to the console.");
 };
 
+
+
+
 function switchToAnimation(name) {
     animation = new Animation(AnimationParser.parse(StoredAnimations[name]));
     animRenderer.setAnimation(animation);
@@ -298,7 +274,7 @@ function switchToAnimation(name) {
  function handleClickOnSegment(index) {
 
     if (copyCheckbox.checked) {
-        setColor(animation.frames[current].segments[index]);
+        color = animation.frames[current].segments[index];
         copy.checked = false;
         return;
     }
@@ -320,16 +296,15 @@ function switchToAnimation(name) {
 }
 
 function resizeCanvas() {
-    if (window.innerHeight > window.innerWidth) {
-        $(document.body).removeClass('landscape');
-    } else {
-        $(document.body).addClass('landscape');
-    }
+    /*
     var circlePortion = 0.6; // Cursed number, bah... 
     var side = Math.min($("#content").width(), $("#content").height());
     animCanvas.style.width = side + "px";
+
+    //side = 600;
     animCanvas.width = side;
     animCanvas.height = side;
+    */
     animRenderer.show(current);
 }
 
@@ -364,12 +339,11 @@ function updateUI() {
     frameSlider.value = current;
     durationInput.value = animation.duration;
     rotationInput.value = animation.rotationSpeed;
-    currentFrame.innerHTML = "Current frame: " + current;
+    frameLabel.innerHTML = "Frame " + current;
 }
 
 function setColor(colorArg) {
     color = colorArg;
-    $("#animation-btn").css("background-color", color);
 }
 
 resizeCanvas();
