@@ -19,18 +19,16 @@
     <title>Color Animations</title>
 
     <div id="content">
-       <canvas id="anim-canvas" width=600 height=600></canvas>
-   </div>
+     <canvas id="anim-canvas" width=600 height=600></canvas>
+ </div>
 
-   <div id="sidebar-left">
+ <div id="sidebar-left">
 
     <div id="menuCategoryPrototype" class="panel panel-default">
 
         <div class="panel-heading">
             <h4 class="panel-title">
-                <!--a data-toggle="collapse" data-parent="#menuCategories" href="#mChroma" class="mcToggler"-->
-                Stuff
-                <!--/a-->
+                Menu
             </h4>
         </div>
 
@@ -38,8 +36,13 @@
             <div class="panel-body">
                 <table class="calibration" id="calibration" style="margin:0px auto;">
                     <tr>
-                        <th><label for="input-color">Color</label></th>
-                        <td><input type="color" id="input-color"></td>
+                        <th><label for="color-input">Color</label></th>
+                        <td><input type="color" id="color-input"></td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="url-input">Server</label></th>
+                        <td><input type="text" value="http://arduino.local:8003" id="url-input"></td>
                     </tr>
 
                     <tr>
@@ -73,17 +76,17 @@
 
         </table>
 
-        <button class="btn btn-small btn-success" id="plus">Add frame</button>
-        <button class="btn btn-small btn-danger" id="minus">Remove frame</button>
+        <button class="btn btn-small btn-success" id="add-frame">Add frame</button>
+        <button class="btn btn-small btn-danger" id="remove-frame">Remove frame</button>
 
-        <button class="btn btn-large btn-primary" id="toolbar-play">Play</button>
-        <button class="btn btn-large btn-primary" id="toolbar-export">Export</button>
+        <button class="btn btn-large btn-primary" id="play">Play</button>
+        <button class="btn btn-large btn-primary" id="export">Export</button>
     </div>
 </div>
 </div>
 </div>
 
-<script src="http://code.jquery.com/jquery.min.js"></script>
+<script src="/js/lib/jquery.min.js"></script>
 <script src="/js/lib/bootstrap/js/bootstrap.min.js"></script>
 <script src="js/color-tool.js"></script>
 <script src="js/color-animation.js"></script>
@@ -93,44 +96,26 @@
 <script src="js/animation-exporter.js"></script>
 <script src="js/animation-parser.js"></script>
 <script src="js/stored-animations.js"></script>
+<script src="js/ball-interface.js"></script>
 
 <script>
 
 var MIN_CANVAS_SIDE = 600;
 
-window.onresize = resizeCanvas;
-
 var current = 0;
 var color = "#ff0000";
 var lastColor = color;
 var lastClicked = 0;
-
-var circleContainer = document.getElementById("content");
 var animCanvas = document.getElementById("anim-canvas");
-    //var paletteCanvas = document.getElementById("palette-canvas");
-    var mouseDown = false;
-    var animation = new Animation(AnimationParser.parse(StoredAnimations.test1));
-    var animRenderer = new ColorRenderer(animCanvas, animation, 0.95, 0.7);
-    //var paletteRenderer = new PaletteRenderer(paletteCanvas, 0.5);
-    var timeoutId;
+var mouseDown = false;
+var animation = new Animation(AnimationParser.parse(StoredAnimations.test1));
+var animRenderer = new ColorRenderer(animCanvas, animation, 0.95, 0.7);
+var timeoutId;
+var isPlaying = false;
 
-    var rotationInput = document.getElementById("rotation-input");
-    var frameSlider = document.getElementById("frame-slider");
-    var frameLabel = document.getElementById("frame-label");
-    //var brightnessSlider = document.getElementById("animator-brightness");
-    var durationInput = document.getElementById("duration-input");
-    var gradientCheckbox = document.getElementById("gradient");
-    var copyCheckbox = document.getElementById("copy");
-    var colorPicker = document.getElementById("input-color");
-
-    colorPicker.value = color;
-
-    var playBtn = document.getElementById("toolbar-play");
-    var exportBtn = document.getElementById("toolbar-export");
-
-    var isPlaying = false;
-
-    animRenderer.shouldDrawContours(true);
+$("#color-input").val(color);
+window.onresize = resizeCanvas;
+animRenderer.shouldDrawContours(true);
 
 
 /*==============================
@@ -159,7 +144,7 @@ function touchDown(e) {
         handleClickOnSegment(index);
     }
 };
-circleContainer.addEventListener("touchstart", touchDown, false);
+$("#anim-canvas").on("touchstart", touchDown);
 
 function touchMove(e) {
     var index = animRenderer.getIndex(touchX(e), touchY(e));
@@ -167,20 +152,17 @@ function touchMove(e) {
         handleClickOnSegment(index);
     }
 };
-circleContainer.addEventListener("touchmove", touchMove, false);
+$("#anim-canvas").on("touchmove", touchDown);
 
 /**
  Handles mouse presses on the canvas
  */
- circleContainer.onmousedown = function(event) {
+$("#anim-canvas").on("mousedown", function() {
     var index = animRenderer.getIndex(event.offsetX, event.offsetY);
-
     if (index >= 0) {
         handleClickOnSegment(index);
     }
-    
-    //paletteRenderer.show();
-}
+});
 
 /**
  Handles mouse moves on the canvas
@@ -203,16 +185,16 @@ circleContainer.addEventListener("touchmove", touchMove, false);
 /**
  Adds a duplicate of the current frame to the animation
  */
- plus.onclick = function() {
+$("#add-frame").click(function() {
     animation.duplicateFrame(current);
     current++;
     updateUI();
-};
+});
 
 /**
  Deletes the current frame from the animation
- */
- minus.onclick = function() {
+*/
+$("#remove-frame").click(function() {
     if (animation.frames.length > 1) {
         animation.deleteFrame(current);
     }
@@ -222,47 +204,48 @@ circleContainer.addEventListener("touchmove", touchMove, false);
     }
     animRenderer.show(current);
     updateUI();
-};
+});
 
 /**
 Changes which frame is currently shown
 */
-frameSlider.onchange = function() {
-    current = frameSlider.value;
+$("#frame-slider").change(function() {
+    current = $("#frame-slider").val();
     updateUI();
     animRenderer.show(current);
-};
+});
 
-durationInput.onchange = function() {
-    animation.duration = durationInput.value;
-};
+$("#duration-input").change(function() {
+    animation.duration = $("#duration-input").val();
+});
 
-rotationInput.onchange = function() {
-    animation.rotationSpeed = rotationInput.value;
-};
+$("#rotation-input").change(function() {
+    animation.rotationSpeed = $("#rotation-input").val();
+});
 
-playBtn.onclick = function() {
+$("#play").click(function() {
     animRenderer.highLightSegment(-1);
-
     if (isPlaying) {
         isPlaying = false;
         clearTimeout(timeoutId);
         animRenderer.show(current);
-        playBtn.innerHTML = "Play";
+        $("#play").html("Play");
         
     } else {
         animate();
-        playBtn.innerHTML = "Pause";
+        $("#play").html("Pause");
+
+        // Try sending the animation to a ball
+        BallInterface.setServerURL($("#url-input").val());
+        BallInterface.sendAnimation(animation);
     }
+});
 
-    //if (!isPlaying) animate();
-};
+$("#color-input").change(function() {
+    color = $("#color-input").val();
+});
 
-colorPicker.onchange = function(e) {
-    color = colorPicker.value
-};
-
-exportBtn.onclick = function() {
+$("#export").click(function() {
     var exported =Exporter.exportJSON(animation);
 
     console.log("Animation as JSON:");
@@ -272,10 +255,7 @@ exportBtn.onclick = function() {
     console.log(JSON.stringify(exported));
 
     alert("The animation was exported to the console.");
-};
-
-
-
+});
 
 function switchToAnimation(name) {
     animation = new Animation(AnimationParser.parse(StoredAnimations[name]));
@@ -287,16 +267,16 @@ function switchToAnimation(name) {
  */
  function handleClickOnSegment(index) {
 
-    if (copyCheckbox.checked) {
+    if ($("#copy").is(":checked")) {
         color = animation.frames[current].segments[index];
-        colorPicker.value = color;
+        $("#color-input").val(color);
         copy.checked = false;
         return;
     }
 
     if (!isPlaying) {
 
-        if (gradientCheckbox.checked) {
+        if ($("#gradient").is(":checked")) {
             animation.drawGradient(current, lastClicked, index, color, lastColor);
         } else {
             animation.setSegmentColor(current, index, color);
@@ -311,13 +291,17 @@ function switchToAnimation(name) {
 }
 
 function resizeCanvas() {
-    
+    /*
+    if (window.innerHeight > window.innerWidth) {
+        $(document.body).removeClass('landscape');
+    } else {
+        $(document.body).addClass('landscape');
+    }
+    */
     var circlePortion = 0.6; // Cursed number, bah... 
     var side = Math.min($("#content").width(), $("#content").height());
     side = Math.min(MIN_CANVAS_SIDE, side);
     animCanvas.style.minWidth = side + "px";
-
-    //side = 600;
     animCanvas.width = side;
     animCanvas.height = side;
 
@@ -351,11 +335,9 @@ function resizeCanvas() {
 Updates the various input fields to show correct values
 */
 function updateUI() {
-    frameSlider.max = animation.frames.length - 1;
-    frameSlider.value = current;
-    durationInput.value = animation.duration;
-    rotationInput.value = animation.rotationSpeed;
-    frameLabel.innerHTML = "Frame " + current;
+    $('#frame-slider').val(current);
+    $('#frame-slider').attr('max', animation.frames.length - 1);
+    $("frame-label").html("Frame " + current);
 }
 
 function setColor(colorArg) {

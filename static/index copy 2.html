@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="user-scalable=no" />
+    <!--meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" /-->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="HandheldFriendly" content="true" />
+    <!-- Chrome for Android web app tags -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="stylesheet" type="text/css" href="/js/lib/bootstrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="css/animator.css"/>
+    <link rel="stylesheet" type="text/css" href="css/style.css"/>
+</head>
+
+<body>
+    <title>Color Animations</title>
+
+    <div id="content">
+     <canvas id="anim-canvas" width=600 height=600></canvas>
+ </div>
+
+ <div id="sidebar-left">
+
+    <div id="menuCategoryPrototype" class="panel panel-default">
+
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                <!--a data-toggle="collapse" data-parent="#menuCategories" href="#mChroma" class="mcToggler"-->
+                Stuff
+                <!--/a-->
+            </h4>
+        </div>
+
+        <div class="panel-collapse collapse in mcToggled" id="mChroma">
+            <div class="panel-body">
+                <table class="calibration" id="calibration" style="margin:0px auto;">
+                    <tr>
+                        <th><label for="input-color">Color</label></th>
+                        <td><input type="color" id="input-color"></td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="url-input">Server</label></th>
+                        <td><input type="text" value="http://bollen-tage.local:8000" id="url-input"></td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="rotation-input">Rotation</label></th>
+                        <td><input type="number" value="1" step="0.1" id="rotation-input"></td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="duration-input">Duration</label></th>
+                        <td><input type="number" value="0.5" step="0.1" id="duration-input"></td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="frame-slider" id="frame-label">Frame 0</label></th>
+                        <td><input type="range" min="0" max="0" id="frame-slider"></td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="gradient">Gradient</label></th>
+                        <td><input type="checkbox" id="gradient"></input></td>
+                    </tr>
+
+                    <tr>
+                        <th><label for="copy">Copy</label></th>
+                        <td><input type="checkbox" id="copy"></input></td>
+                    </tr>
+                </div>
+
+
+            </div>
+
+        </table>
+
+        <button class="btn btn-small btn-success" id="plus">Add frame</button>
+        <button class="btn btn-small btn-danger" id="minus">Remove frame</button>
+
+        <button class="btn btn-large btn-primary" id="toolbar-play">Play</button>
+        <button class="btn btn-large btn-primary" id="toolbar-export">Export</button>
+    </div>
+</div>
+</div>
+</div>
+
+<script src="http://code.jquery.com/jquery.min.js"></script>
+<script src="/js/lib/bootstrap/js/bootstrap.min.js"></script>
+<script src="js/color-tool.js"></script>
+<script src="js/color-animation.js"></script>
+<script src="js/color-renderer.js"></script>
+<script src="js/color-convert.js"></script>
+<script src="js/palette-renderer.js"></script>
+<script src="js/animation-exporter.js"></script>
+<script src="js/animation-parser.js"></script>
+<script src="js/stored-animations.js"></script>
+
+<script>
+
+var MIN_CANVAS_SIDE = 600;
+
+window.onresize = resizeCanvas;
+
+var current = 0;
+var color = "#ff0000";
+var lastColor = color;
+var lastClicked = 0;
+
+var circleContainer = document.getElementById("content");
+var animCanvas = document.getElementById("anim-canvas");
+//var paletteCanvas = document.getElementById("palette-canvas");
+var mouseDown = false;
+var animation = new Animation(AnimationParser.parse(StoredAnimations.test1));
+var animRenderer = new ColorRenderer(animCanvas, animation, 0.95, 0.7);
+//var paletteRenderer = new PaletteRenderer(paletteCanvas, 0.5);
+var timeoutId;
+
+var rotationInput = document.getElementById("rotation-input");
+var frameSlider = document.getElementById("frame-slider");
+var frameLabel = document.getElementById("frame-label");
+//var brightnessSlider = document.getElementById("animator-brightness");
+var durationInput = document.getElementById("duration-input");
+var gradientCheckbox = document.getElementById("gradient");
+var copyCheckbox = document.getElementById("copy");
+var colorPicker = document.getElementById("input-color");
+
+colorPicker.value = color;
+
+var playBtn = document.getElementById("toolbar-play");
+var exportBtn = document.getElementById("toolbar-export");
+
+var isPlaying = false;
+
+animRenderer.shouldDrawContours(true);
+
+
+/*==============================
+== Mouse presses and touches ==
+=============================*/
+
+$("body").bind("touchmove", function(e){e.preventDefault()});
+
+document.body.onmousedown = function() {
+    mouseDown = true;
+}
+document.body.onmouseup = function() {
+    mouseDown = false;
+}
+
+function touchX(e) {
+    return (e.touches[0].clientX - animCanvas.offsetLeft);
+}
+function touchY(e) {
+    return (e.touches[0].clientY - animCanvas.offsetTop);
+}
+
+function touchDown(e) {
+    var index = animRenderer.getIndex(touchX(e), touchY(e));
+    if (index >= 0) {
+        handleClickOnSegment(index);
+    }
+};
+circleContainer.addEventListener("touchstart", touchDown, false);
+
+function touchMove(e) {
+    var index = animRenderer.getIndex(touchX(e), touchY(e));
+    if (index >= 0) {
+        handleClickOnSegment(index);
+    }
+};
+circleContainer.addEventListener("touchmove", touchMove, false);
+
+/**
+ Handles mouse presses on the canvas
+ */
+ circleContainer.onmousedown = function(event) {
+    var index = animRenderer.getIndex(event.offsetX, event.offsetY);
+
+    if (index >= 0) {
+        handleClickOnSegment(index);
+    }
+    //paletteRenderer.show();
+}
+
+/**
+ Handles mouse moves on the canvas
+ */
+ animCanvas.onmousemove = function(event) {
+    if (!mouseDown) {
+        return;
+    }
+    var index = animRenderer.getIndex(event.offsetX, event.offsetY);
+    if (index >= 0) {
+        handleClickOnSegment(index);
+    }
+}
+
+
+/*========================
+ == Buttons and sliders ==
+ =======================*/
+
+/**
+ Adds a duplicate of the current frame to the animation
+ */
+ plus.onclick = function() {
+    animation.duplicateFrame(current);
+    current++;
+    updateUI();
+};
+
+/**
+ Deletes the current frame from the animation
+ */
+ minus.onclick = function() {
+    if (animation.frames.length > 1) {
+        animation.deleteFrame(current);
+    }
+    
+    if (current > 0) {
+        current--;
+    }
+    animRenderer.show(current);
+    updateUI();
+};
+
+/**
+Changes which frame is currently shown
+*/
+frameSlider.onchange = function() {
+    current = frameSlider.value;
+    updateUI();
+    animRenderer.show(current);
+};
+
+durationInput.onchange = function() {
+    animation.duration = durationInput.value;
+};
+
+rotationInput.onchange = function() {
+    animation.rotationSpeed = rotationInput.value;
+};
+
+playBtn.onclick = function() {
+    animRenderer.highLightSegment(-1);
+
+    if (isPlaying) {
+        isPlaying = false;
+        clearTimeout(timeoutId);
+        animRenderer.show(current);
+        playBtn.innerHTML = "Play";
+        
+    } else {
+        animate();
+        playBtn.innerHTML = "Pause";
+    }
+
+    //if (!isPlaying) animate();
+};
+
+colorPicker.onchange = function(e) {
+    color = colorPicker.value
+};
+
+exportBtn.onclick = function() {
+    var exported =Exporter.exportJSON(animation);
+
+    console.log("Animation as JSON:");
+    console.log(exported);
+
+    console.log("Animation as a string:");
+    console.log(JSON.stringify(exported));
+
+    alert("The animation was exported to the console.");
+};
+
+
+
+
+function switchToAnimation(name) {
+    animation = new Animation(AnimationParser.parse(StoredAnimations[name]));
+    animRenderer.setAnimation(animation);
+}
+
+/**
+ Colors the clicked circle segment
+ */
+ function handleClickOnSegment(index) {
+
+    if (copyCheckbox.checked) {
+        color = animation.frames[current].segments[index];
+        colorPicker.value = color;
+        copy.checked = false;
+        return;
+    }
+
+    if (!isPlaying) {
+
+        if (gradientCheckbox.checked) {
+            animation.drawGradient(current, lastClicked, index, color, lastColor);
+        } else {
+            animation.setSegmentColor(current, index, color);
+        }
+
+        lastClicked = index;
+        lastColor = color;
+
+        animRenderer.highLightSegment(index);
+        animRenderer.show(current);
+    }
+}
+
+function resizeCanvas() {
+    /*
+    if (window.innerHeight > window.innerWidth) {
+        $(document.body).removeClass('landscape');
+    } else {
+        $(document.body).addClass('landscape');
+    }
+    */
+    var circlePortion = 0.6; // Cursed number, bah... 
+    var side = Math.min($("#content").width(), $("#content").height());
+    side = Math.min(MIN_CANVAS_SIDE, side);
+    animCanvas.style.minWidth = side + "px";
+
+    //side = 600;
+    animCanvas.width = side;
+    animCanvas.height = side;
+
+    animRenderer.show(current);
+}
+
+/**
+ Draw a sequence of frames
+ */
+ function animate() {
+    var animationSteps = animation.frames.length;
+    var delay = 2000 * animation.duration / animationSteps;
+    var isLastFrame;
+    var rotation = 0;
+
+    isPlaying = true;
+    
+    current = -1;
+    drawNextFrame();
+    
+    function drawNextFrame() {
+        current = (current + 1) % animation.frames.length;
+        animRenderer.show(current, rotation);
+        rotation += animation.rotationSpeed * 2 * Math.PI / animation.numSegments;
+        timeoutId = setTimeout(drawNextFrame, delay);
+        updateUI();
+    }
+};
+
+/**
+Updates the various input fields to show correct values
+*/
+function updateUI() {
+    frameSlider.max = animation.frames.length - 1;
+    frameSlider.value = current;
+    durationInput.value = animation.duration;
+    rotationInput.value = animation.rotationSpeed;
+    frameLabel.innerHTML = "Frame " + current;
+}
+
+function setColor(colorArg) {
+    color = colorArg;
+}
+
+resizeCanvas();
+
+</script>
+</body>
+</html>
+
+
+
