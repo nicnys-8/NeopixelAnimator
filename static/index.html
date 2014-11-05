@@ -56,6 +56,11 @@
                     </tr>
 
                     <tr>
+                        <th><label for="frame-duration-input">Frame duration</label></th>
+                        <td><input type="number" value="1" step="1" id="frame-duration-input"></td>
+                    </tr>
+
+                    <tr>
                         <th><label for="frame-slider" id="frame-label">Frame 0</label></th>
                         <td><input type="range" min="0" max="0" id="frame-slider"></td>
                     </tr>
@@ -219,6 +224,10 @@ $("#duration-input").change(function() {
     animation.duration = $("#duration-input").val();
 });
 
+$("#frame-duration-input").change(function() {
+    animation.frames[current].duration = $("#frame-duration-input").val();
+});
+
 $("#rotation-input").change(function() {
     animation.rotationSpeed = $("#rotation-input").val();
 });
@@ -326,7 +335,7 @@ function resizeCanvas() {
         current = (current + 1) % animation.frames.length;
         animRenderer.show(current, rotation);
         rotation += animation.rotationSpeed * 2 * Math.PI / animation.numSegments;
-        timeoutId = setTimeout(drawNextFrame, delay);
+        timeoutId = setTimeout(drawNextFrame, animation.frames[current].duration * delay);
         updateUI();
     }
 };
@@ -338,6 +347,7 @@ function updateUI() {
     $('#frame-slider').val(current);
     $('#frame-slider').attr('max', animation.frames.length - 1);
     $("frame-label").html("Frame " + current);
+    $("#frame-duration-input").val(animation.frames[current].duration);
 }
 
 function setColor(colorArg) {

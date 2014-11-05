@@ -18,7 +18,6 @@ var Animation = function(description) {
             segments: [],
             rotation: 0,
             duration: 1,
-            //lerpSteps: 4
         }
         
         this.frames = [firstFrame];
