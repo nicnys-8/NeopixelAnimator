@@ -162,8 +162,8 @@ $("#anim-canvas").on("touchmove", touchDown);
 /**
  Handles mouse presses on the canvas
  */
-$("#anim-canvas").on("mousedown", function() {
-    var index = animRenderer.getIndex(event.offsetX, event.offsetY);
+$("#anim-canvas").on("mousedown", function(e) {
+    var index = animRenderer.getIndex(e.offsetX, e.offsetY);
     if (index >= 0) {
         handleClickOnSegment(index);
     }
@@ -172,11 +172,11 @@ $("#anim-canvas").on("mousedown", function() {
 /**
  Handles mouse moves on the canvas
  */
- animCanvas.onmousemove = function(event) {
+ animCanvas.onmousemove = function(e) {
     if (!mouseDown) {
         return;
     }
-    var index = animRenderer.getIndex(event.offsetX, event.offsetY);
+    var index = animRenderer.getIndex(e.offsetX, e.offsetY);
     if (index >= 0) {
         handleClickOnSegment(index);
     }
