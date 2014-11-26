@@ -33,7 +33,7 @@ var BallInterface = function() {
     };
     
     /**
-    Makes the ball play a specified animation
+    Makes the ball play a specified animation, storing it on the server
     */
     API.playAnimation = function(animation, name) {
         var xhr = new XMLHttpRequest();
@@ -45,6 +45,9 @@ var BallInterface = function() {
         xhr.send(JSON.stringify(Exporter.exportAnimation(animation)));
     };
 
+    /**
+    Makes the ball play a specified animation
+    */
     API.playAnimationByName = function(name) {
         var xhr = new XMLHttpRequest();
         xhr.open("GET", serverURL + "/api/animation/" + name, true);

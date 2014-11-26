@@ -260,7 +260,7 @@ $("#play").click(function() {
 
 $("#save").click(function() {
     BallInterface.setServerURL($("#url-input").val());
-    BallInterface.playAnimationByName($("#name-input").val());
+    BallInterface.playAnimation(animation, $("#name-input").val());
 });
 
 $("#color-input").change(function() {
