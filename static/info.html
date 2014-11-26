@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"></meta>
+    <link rel="stylesheet" type="text/css" href="js/lib/bootstrap/css/bootstrap.min.css"/>
+    
+    <title>Animator</title>
+</head>
+
+<body>
+    <div style="padding: 30px">
+        <h1>Animator</h1>
+        The Neopixel animator web app for Google Chrome can be used to create simple animations for a Tage.
+
+        <h2>Creating animations</h2>
+        You create a number of animation frames that can be played in sequence by Tage. To edit the current frame, just click a segment of the circle to turn it to the selected color.
+
+        The different fields of the animator are described below.
+
+        <h3>Color</h3>
+        Defines what color a circle segment will become when clicked.
+
+        <h3>Rotation</h3>
+        This number decides how many steps each circle segment will rotate per animation frame (where one 'step' is 1/24 of a revolution).
+
+        <h3>Duration</h3>
+        The duration of a standard length animation frame, in seconds.
+
+        <h3>Frame Duration</h3>
+        The duration of the current frame, expressed in the number of standard durations (a bit confusing, but it makes sense: this way you can change the speed of the entire animation by editing a single value, instead of doing it for every frame).
+
+        <h3>Frame</h3>
+        This slider is used to select which animation frame to display and edit.
+
+        <h3>Gradient</h3>
+        How to use it:
+        <ul>
+            <li>Select a color</li>
+            <li>Click a segment</li>
+            <li>Check Gradient</li>
+            <li>Select a new color</li>
+            <li>Click another segment</li>
+        </ul>
+
+        Now you should have a nice gradient between the two segments.
+
+        <h3>Copy</h3>
+        When this checkbox is checked, the value of the Color picker will be set to the color of the next segment you click.
+
+        <h3>Add frame</h3>
+        Adds a copy of the currently displayed frame to the animation.
+
+        <h3>Remove frame</h3>
+        Deletes the currently displayed frame from the animation.
+
+        <h2>Playing animations</h2>
+        To make your animation play directly on Tage, simply input its URL into the Server field in the web app, and click the play button. Tage will start playing the animation, as well as storing the animation by the name temp.
+
+        <h2>Storing animations</h2>
+        To give your animation a permanent name, input any name into the Name field and click the button that says Save to Tage.
+
+        <h2>Exporting animations</h2>
+        Exports the current animation to the JavaScript console, in a format that Tage can read.
+    </div>
+</body>
+</html>
