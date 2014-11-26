@@ -46,6 +46,11 @@
                     </tr>
 
                     <tr>
+                        <th><label for="name-input">Name</label></th>
+                        <td><input type="text" value="temp" id="name-input"></td>
+                    </tr>
+
+                    <tr>
                         <th><label for="rotation-input">Rotation</label></th>
                         <td><input type="number" value="0" step="0.1" id="rotation-input"></td>
                     </tr>
@@ -86,6 +91,7 @@
 
         <button class="btn btn-large btn-primary" id="play">Play</button>
         <button class="btn btn-large btn-primary" id="export">Export</button>
+        <button class="btn btn-large btn-primary" id="save">Save to Tage</button>
     </div>
 </div>
 </div>
@@ -250,6 +256,11 @@ $("#play").click(function() {
         BallInterface.setServerURL($("#url-input").val());
         BallInterface.playAnimation(animation);
     }
+});
+
+$("#save").click(function() {
+    BallInterface.setServerURL($("#url-input").val());
+    BallInterface.playAnimationByName($("#name-input").val());
 });
 
 $("#color-input").change(function() {
