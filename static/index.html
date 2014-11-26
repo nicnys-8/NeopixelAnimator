@@ -268,7 +268,7 @@ $("#color-input").change(function() {
 });
 
 $("#export").click(function() {
-    var exported =Exporter.exportJSON(animation);
+    var exported = Exporter.exportAnimation(animation);
 
     console.log("Animation as JSON:");
     console.log(exported);
